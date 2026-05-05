@@ -1,0 +1,9 @@
+package com.carlossilvadev.desafio_backend_url_shortener.exceptions;
+
+public class UrlNotFoundException extends RuntimeException {
+	private static final long serialVersionUID = 1L;
+	
+	public UrlNotFoundException(String msg) {
+		super(msg);
+	}
+}

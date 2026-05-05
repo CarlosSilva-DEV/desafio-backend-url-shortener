@@ -29,6 +29,14 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(status).body(handledException);
 	}
 	
+	@ExceptionHandler(UrlNotFoundException.class)
+	public ResponseEntity<StandardError> handleUrlNotFound(UrlNotFoundException exception, HttpServletRequest request) {
+		String error = "URL not found";
+		HttpStatus status = HttpStatus.NOT_FOUND;
+		StandardError handledException = new StandardError(Instant.now(), status.value(), error, exception.getMessage(), request.getRequestURI());		
+		return ResponseEntity.status(status).body(handledException);
+	}
+	
 	@ExceptionHandler(UrlShorteningException.class)
 	public ResponseEntity<StandardError> handleExistingUrlException(UrlShorteningException exception, HttpServletRequest request) {
 		String error = "The given URL already exists";

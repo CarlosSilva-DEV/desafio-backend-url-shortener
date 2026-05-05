@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 
 import com.carlossilvadev.desafio_backend_url_shortener.dto.UrlRequestDTO;
 import com.carlossilvadev.desafio_backend_url_shortener.dto.UrlResponseDTO;
+import com.carlossilvadev.desafio_backend_url_shortener.exceptions.UrlNotFoundException;
 import com.carlossilvadev.desafio_backend_url_shortener.exceptions.UrlShorteningException;
 import com.carlossilvadev.desafio_backend_url_shortener.model.Url;
 import com.carlossilvadev.desafio_backend_url_shortener.repository.UrlRepository;
@@ -31,6 +32,12 @@ public class UrlShortenerService {
 			
 			return new UrlResponseDTO(repository.save(url).getShortenedUrl());
 		}
+	}
+	
+	public UrlResponseDTO findOriginalUrl(String request) {
+		String originalUrl = repository.findByShortenedUrl(request)
+				.map(Url::getOriginalUrl).orElseThrow(() -> new UrlNotFoundException("A URL informada não existe: " + request));
+		return new UrlResponseDTO(originalUrl);
 	}
 	
 	// método auxiliar (shortenUrl)
