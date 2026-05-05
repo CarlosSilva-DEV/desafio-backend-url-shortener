@@ -12,8 +12,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+	private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 	
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<StandardError> handleValidationException(MethodArgumentNotValidException exception, HttpServletRequest request) {
@@ -42,6 +46,17 @@ public class GlobalExceptionHandler {
 		String error = "The given URL already exists";
 		HttpStatus status = HttpStatus.CONFLICT;
 		StandardError handledException = new StandardError(Instant.now(), status.value(), error, exception.getMessage(), request.getRequestURI());		
+		return ResponseEntity.status(status).body(handledException);
+	}
+	
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<StandardError> handleUnexpectedExceptions(Exception exception, HttpServletRequest request) {
+		// log de erro slf4j
+		log.error("Internal Server Error: ", exception);
+				
+		String error = "Internal Server Error";
+		HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+		StandardError handledException = new StandardError(Instant.now(), status.value(), error, "Ocorreu um erro interno inesperado do servidor", request.getRequestURI());
 		return ResponseEntity.status(status).body(handledException);
 	}
 }
