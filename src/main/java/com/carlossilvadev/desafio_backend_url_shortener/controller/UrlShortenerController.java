@@ -1,7 +1,12 @@
 package com.carlossilvadev.desafio_backend_url_shortener.controller;
 
+import java.net.URI;
+
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,5 +33,15 @@ public class UrlShortenerController {
 		var redirectUrl = servletRequest.getRequestURL().toString().replace("shorten-url", originalUrl); // constrói a URL com host e porta + URL curta no caminho URI
 		
 		return ResponseEntity.status(HttpStatus.CREATED).body(new UrlResponseDTO(redirectUrl));
+	}
+	
+	@GetMapping("/{request}")
+	public ResponseEntity<Void> redirect(@PathVariable String request) {
+		var originalUrl = service.findOriginalUrl(request).url();
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.setLocation(URI.create(originalUrl));
+		
+		return ResponseEntity.status(HttpStatus.FOUND).headers(headers).build();
 	}
 }
