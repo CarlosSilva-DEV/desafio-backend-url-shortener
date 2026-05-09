@@ -108,4 +108,25 @@ public class UrlShortenerServiceTest {
 		verify(repository, times(2)).findByShortenedUrl(anyString());
 		verify(repository).save(any(Url.class));
 	}
+	
+	@Test
+	@DisplayName("Deve retornar DTO com URL original quando a chave buscada existir")
+	void shouldSuccessFindOriginalUrl_whenKeyExists() {
+		// ARRANGE
+		String shortenedUrl = "aBc123";
+		String originalUrl = "https://google.com";
+		Url existingUrl = new Url(shortenedUrl, originalUrl);
+		
+		// simula recuperação de entidade Url com base na chave (shortenedUrl)
+		when(repository.findByShortenedUrl(shortenedUrl)).thenReturn(Optional.of(existingUrl));
+		
+		// ACT
+		UrlResponseDTO response = service.findOriginalUrl(shortenedUrl);
+		
+		// ASSERT
+		assertNotNull(response);
+		assertEquals(originalUrl, response.url());
+		
+		verify(repository).findByShortenedUrl(shortenedUrl);
+	}
 }
