@@ -1,4 +1,4 @@
-package com.carlossilvadev.desafio_tecnico_backend_itau;
+package com.carlossilvadev.desafio_backend_url_shortener;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
