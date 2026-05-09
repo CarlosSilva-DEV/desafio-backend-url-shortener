@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import com.carlossilvadev.desafio_backend_url_shortener.dto.UrlRequestDTO;
 import com.carlossilvadev.desafio_backend_url_shortener.dto.UrlResponseDTO;
 import com.carlossilvadev.desafio_backend_url_shortener.exceptions.UrlNotFoundException;
-import com.carlossilvadev.desafio_backend_url_shortener.exceptions.UrlShorteningException;
 import com.carlossilvadev.desafio_backend_url_shortener.model.Url;
 import com.carlossilvadev.desafio_backend_url_shortener.repository.UrlRepository;
 import com.carlossilvadev.desafio_backend_url_shortener.service.utils.ShortenerConstants;
@@ -23,14 +22,12 @@ public class UrlShortenerService {
 			String shortenUrl = generateRandomKey( // gera uma String aleatória entre 5-10 caracteres
 					ShortenerConstants.MIN_LENGTH + ShortenerConstants.SECURE_RANDOM
 					.nextInt(ShortenerConstants.MAX_LENGTH - ShortenerConstants.MIN_LENGTH + 1));
-			
-			Url url = new Url(shortenUrl, request.url());
 				
-			if (repository.findByShortenedUrl(shortenUrl).isPresent()) { // verifica no Redis se existe uma chave como a gerada. caso exista, lança exceção
-				throw new UrlShorteningException("A URL curta gerada já existe: " + shortenUrl);
+			if (repository.findByShortenedUrl(shortenUrl).isEmpty()) { // verifica no Redis se existe uma chave como a gerada. caso não exista, cria a entidade e salva no Redis
+				Url url = new Url(shortenUrl, request.url());
+				return new UrlResponseDTO(repository.save(url).getShortenedUrl());
 			}
-			
-			return new UrlResponseDTO(repository.save(url).getShortenedUrl());
+			// caso a chave já exista no Redis, continua em uma nova iteração para tentar criar outra chave
 		}
 	}
 	

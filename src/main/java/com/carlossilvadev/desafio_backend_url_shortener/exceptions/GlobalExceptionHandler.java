@@ -41,14 +41,6 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(status).body(handledException);
 	}
 	
-	@ExceptionHandler(UrlShorteningException.class)
-	public ResponseEntity<StandardError> handleExistingUrlException(UrlShorteningException exception, HttpServletRequest request) {
-		String error = "The given URL already exists";
-		HttpStatus status = HttpStatus.CONFLICT;
-		StandardError handledException = new StandardError(Instant.now(), status.value(), error, exception.getMessage(), request.getRequestURI());		
-		return ResponseEntity.status(status).body(handledException);
-	}
-	
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<StandardError> handleUnexpectedExceptions(Exception exception, HttpServletRequest request) {
 		// log de erro slf4j
