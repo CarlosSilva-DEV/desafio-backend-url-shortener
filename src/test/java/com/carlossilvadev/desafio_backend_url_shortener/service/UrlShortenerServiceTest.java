@@ -1,0 +1,84 @@
+package com.carlossilvadev.desafio_backend_url_shortener.service;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Optional;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.carlossilvadev.desafio_backend_url_shortener.dto.UrlRequestDTO;
+import com.carlossilvadev.desafio_backend_url_shortener.dto.UrlResponseDTO;
+import com.carlossilvadev.desafio_backend_url_shortener.model.Url;
+import com.carlossilvadev.desafio_backend_url_shortener.repository.UrlRepository;
+import com.carlossilvadev.desafio_backend_url_shortener.service.utils.ShortenerConstants;
+
+@ExtendWith(MockitoExtension.class) // habilita o Mockito sem subir contexto Spring
+public class UrlShortenerServiceTest {
+	
+	@Mock // cria uma implementação simulada, usada em dependências da classe testada
+	private UrlRepository repository;
+	
+	@InjectMocks // cria uma instancia real, usada na classe a ser testada
+	private UrlShortenerService service;
+	
+	@Test
+	@DisplayName("Deve encurtar URL fornecida e retornar DTO quando não houver conflito de chaves")
+	void shouldSuccessShortenUrl_whenNoKeyConflictExists() {
+		// ARRANGE
+		String originalUrl = "https://google.com";
+		UrlRequestDTO request = new UrlRequestDTO(originalUrl);
+		
+		// type-checking
+		ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
+		ArgumentCaptor<Url> urlCaptor = ArgumentCaptor.forClass(Url.class);
+		
+		// simula que não haverá conflito de chaves
+		when(repository.findByShortenedUrl(anyString())).thenReturn(Optional.empty());
+		
+		// simula salvamento de entidade Url com retorno do objeto salvo
+		when(repository.save(any(Url.class))).thenAnswer(Invocation -> Invocation.getArgument(0));
+		
+		// ACT
+		UrlResponseDTO response = service.shortenUrl(request);
+		
+		// ASSERT
+		assertNotNull(response);
+		assertNotNull(response.url());
+		int length = response.url().length();
+		
+		// verifica tamanho da URL curta (entre 5-10 caracteres)
+		assertTrue(length >= ShortenerConstants.MIN_LENGTH && length <= ShortenerConstants.MAX_LENGTH,
+				"Comprimento esperado: entre %d e %d, mas foi: %d"
+					.formatted(ShortenerConstants.MIN_LENGTH, ShortenerConstants.MAX_LENGTH, length)
+		);
+		
+		// verifica se URL possui apenas caracteres alfanuméricos
+		assertTrue(
+				response.url().chars().allMatch(c -> ShortenerConstants.CHAR_POOL.indexOf(c) >= 0),
+				"A URL encurtada contém caracteres fora do CHAR_POOL"
+		);
+		
+		// verifica se o repository foi chamado corretamente
+		verify(repository).findByShortenedUrl(keyCaptor.capture());
+		verify(repository).save(urlCaptor.capture());
+		
+		String capturedKey = keyCaptor.getValue();
+		Url capturedUrl = urlCaptor.getValue();
+		
+		assertEquals(capturedKey, capturedUrl.getShortenedUrl()); // verifica chave retornada é igual a shortenedUrl
+		assertEquals(originalUrl, capturedUrl.getOriginalUrl()); // verifica se a URL original é igual a originalUrl retornada
+		assertEquals(capturedKey, response.url()); // verifica se chave capturada é igual a URL curta gerada no DTO
+	}
+}
