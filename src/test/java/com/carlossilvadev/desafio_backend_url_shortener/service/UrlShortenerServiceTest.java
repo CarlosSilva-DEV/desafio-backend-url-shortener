@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -80,5 +81,31 @@ public class UrlShortenerServiceTest {
 		assertEquals(capturedKey, capturedUrl.getShortenedUrl()); // verifica chave retornada é igual a shortenedUrl
 		assertEquals(originalUrl, capturedUrl.getOriginalUrl()); // verifica se a URL original é igual a originalUrl retornada
 		assertEquals(capturedKey, response.url()); // verifica se chave capturada é igual a URL curta gerada no DTO
+	}
+	
+	@Test
+	@DisplayName("Deve tentar gerar nova URL curta quando houver conflito de chaves")
+	void shouldRetryShortenUrl_whenKeyAlreadyExists() {
+		// ARRANGE
+		UrlRequestDTO request = new UrlRequestDTO("https://google.com.br");
+		Url conflictingUrl = new Url("randomUrl", "https://youtube.com");
+		
+		// simula que haverá conflito de chaves 1 vez, então shortenUrl() tentará gerar nova chave e resultará sucesso
+		when(repository.findByShortenedUrl(anyString()))
+				.thenReturn(Optional.of(conflictingUrl))
+				.thenReturn(Optional.empty());
+		
+		when(repository.save(any(Url.class))).thenAnswer(Invocation -> Invocation.getArgument(0));
+		
+		// ACT
+		UrlResponseDTO response = service.shortenUrl(request);
+		
+		// ASSERT
+		assertNotNull(response);
+		assertNotNull(response.url());
+		
+		// verifica número de chamadas (1 conflito + 1 sucesso)
+		verify(repository, times(2)).findByShortenedUrl(anyString());
+		verify(repository).save(any(Url.class));
 	}
 }
