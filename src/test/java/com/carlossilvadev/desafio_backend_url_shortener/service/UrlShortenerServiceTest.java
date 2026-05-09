@@ -2,6 +2,7 @@ package com.carlossilvadev.desafio_backend_url_shortener.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -21,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.carlossilvadev.desafio_backend_url_shortener.dto.UrlRequestDTO;
 import com.carlossilvadev.desafio_backend_url_shortener.dto.UrlResponseDTO;
+import com.carlossilvadev.desafio_backend_url_shortener.exceptions.UrlNotFoundException;
 import com.carlossilvadev.desafio_backend_url_shortener.model.Url;
 import com.carlossilvadev.desafio_backend_url_shortener.repository.UrlRepository;
 import com.carlossilvadev.desafio_backend_url_shortener.service.utils.ShortenerConstants;
@@ -128,5 +130,26 @@ public class UrlShortenerServiceTest {
 		assertEquals(originalUrl, response.url());
 		
 		verify(repository).findByShortenedUrl(shortenedUrl);
+	}
+	
+	@Test
+	@DisplayName("Deve lançar UrlNotFoundException quando a chave buscada não existir")
+	void shouldThrowExceptionFindOriginalUrl_whenKeyNotExists() {
+		// ARRANGE
+		String nonExistentUrl = "testUrl";
+		
+		// simula a busca por uma chave inexistente,retornando empty
+		when(repository.findByShortenedUrl(nonExistentUrl)).thenReturn(Optional.empty());
+		
+		// ACT e ASSERT
+		UrlNotFoundException exception = assertThrows( // verifica a exceção lançada pelo método
+				UrlNotFoundException.class,
+				() -> service.findOriginalUrl(nonExistentUrl)
+		);
+		
+		// compara as mensagens das exceções lançadas
+		assertEquals("A URL informada não existe: " + nonExistentUrl, exception.getMessage());
+		
+		verify(repository).findByShortenedUrl(nonExistentUrl);
 	}
 }
