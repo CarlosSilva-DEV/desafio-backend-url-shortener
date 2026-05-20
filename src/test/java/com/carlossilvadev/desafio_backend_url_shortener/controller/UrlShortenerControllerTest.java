@@ -87,4 +87,31 @@ public class UrlShortenerControllerTest {
 		// validação falhou, então não deve ocorrer interações com UrlShortenerService
 		verifyNoInteractions(service);
 	}
+	
+	@Test
+	@DisplayName("Deve retornar status 400 e lançar MethodArgumentNotValidException caso a url fornecida em UrlRequestDTO não contenha protocolo HTTPS")
+	void shouldReturn400AndThrowMethodArgumentNotValidException_whenDtoUrlFieldIsNotHttps() throws Exception {
+		// ARRANGE
+		UrlRequestDTO request = new UrlRequestDTO("http://google.com"); // URL inválida (protocolo HTTP em vez de HTTPS)
+		final String URI = "/shorten-url";
+		final Integer EXPECTED_STATUS = HttpStatus.BAD_REQUEST.value();
+		final String EXPECTED_ERROR = "Invalid input data";
+		final String EXPECTED_MESSAGE = "url: Campo deve ser preenchido com uma URL válida";
+				
+		// ACT & ASSERT
+		mockMvc.perform(post(URI)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsString(request)))
+		.andExpect(result -> {
+			Exception exception = result.getResolvedException();
+			assertThat(exception).isInstanceOf(MethodArgumentNotValidException.class);
+		})
+		.andExpect(jsonPath("$.timestamp").exists())
+		.andExpect(jsonPath("$.status").value(EXPECTED_STATUS))
+		.andExpect(jsonPath("$.error").value(EXPECTED_ERROR))
+		.andExpect(jsonPath("$.message").value(EXPECTED_MESSAGE))
+		.andExpect(jsonPath("$.path").value(URI));
+		
+		verifyNoInteractions(service);
+	}
 }
