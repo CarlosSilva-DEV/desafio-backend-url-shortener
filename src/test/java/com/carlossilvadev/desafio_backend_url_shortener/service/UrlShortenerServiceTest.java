@@ -19,6 +19,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.context.ActiveProfiles;
 
 import com.carlossilvadev.desafio_backend_url_shortener.dto.UrlRequestDTO;
 import com.carlossilvadev.desafio_backend_url_shortener.dto.UrlResponseDTO;
@@ -27,6 +28,7 @@ import com.carlossilvadev.desafio_backend_url_shortener.model.Url;
 import com.carlossilvadev.desafio_backend_url_shortener.repository.UrlRepository;
 import com.carlossilvadev.desafio_backend_url_shortener.service.utils.ShortenerConstants;
 
+@ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class) // habilita o Mockito sem subir contexto Spring
 public class UrlShortenerServiceTest {
 	
