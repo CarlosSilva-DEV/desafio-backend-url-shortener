@@ -1,7 +1,9 @@
 package com.carlossilvadev.desafio_backend_url_shortener.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -12,10 +14,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import com.carlossilvadev.desafio_backend_url_shortener.dto.UrlRequestDTO;
 import com.carlossilvadev.desafio_backend_url_shortener.dto.UrlResponseDTO;
@@ -53,5 +57,34 @@ public class UrlShortenerControllerTest {
 		.andExpect(jsonPath("$.url").value("http://localhost/aBc123")); // equivalente a criar redirectUrl
 		
 		verify(service).shortenUrl(any(UrlRequestDTO.class));
+	}
+	
+	@Test
+	@DisplayName("Deve retornar status 400 e lançar MethodArgumentNotValidException caso o campo url do UrlRequestDTO fornecido seja vazio")
+	void shouldReturn400AndThrowMethodArgumentNotValidException_whenDtoUrlFieldIsBlank() throws Exception {
+		// ARRANGE
+		UrlRequestDTO request = new UrlRequestDTO("");
+		final String URI = "/shorten-url";
+		final Integer EXPECTED_STATUS = HttpStatus.BAD_REQUEST.value();
+		final String EXPECTED_ERROR = "Invalid input data";
+		final String EXPECTED_MESSAGE = "url: Campo não pode ser vazio";
+		
+		// ACT & ASSERT
+		mockMvc.perform(post(URI)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsString(request)))
+		.andExpect(result -> {
+			Exception exception = result.getResolvedException(); // extraindo exceção lançada
+			assertThat(exception).isInstanceOf(MethodArgumentNotValidException.class); // comparando com exceção esperada
+		})
+		// verifica formato esperado do StandardError retornado no JSON
+		.andExpect(jsonPath("$.timestamp").exists())
+		.andExpect(jsonPath("$.status").value(EXPECTED_STATUS))
+		.andExpect(jsonPath("$.error").value(EXPECTED_ERROR))
+		.andExpect(jsonPath("$.message").value(EXPECTED_MESSAGE))
+		.andExpect(jsonPath("$.path").value(URI));
+		
+		// validação falhou, então não deve ocorrer interações com UrlShortenerService
+		verifyNoInteractions(service);
 	}
 }
