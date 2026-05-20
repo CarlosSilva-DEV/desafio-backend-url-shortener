@@ -4,15 +4,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import com.carlossilvadev.desafio_backend_url_shortener.model.Url;
 
 @Configuration
+@EnableRedisRepositories
 public class RedisConfig {
 	@Bean // template específico para URL
-	public RedisTemplate<String, Url> urlRedisTemplate(RedisConnectionFactory connectionFactory) {		
+	public RedisTemplate<String, Url> redisTemplate(RedisConnectionFactory connectionFactory) {		
 		
 		// Serializer de chaves (String -> bytes)
 		StringRedisSerializer stringSerializer = new StringRedisSerializer();
