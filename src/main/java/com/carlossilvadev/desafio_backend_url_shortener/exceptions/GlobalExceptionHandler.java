@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -38,6 +39,20 @@ public class GlobalExceptionHandler {
 		String error = "URL not found";
 		HttpStatus status = HttpStatus.NOT_FOUND;
 		StandardError handledException = new StandardError(Instant.now(), status.value(), error, exception.getMessage(), request.getRequestURI());		
+		return ResponseEntity.status(status).body(handledException);
+	}
+	
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<StandardError> handleHttpMessageNotReadable(HttpMessageNotReadableException exception, HttpServletRequest request) {
+		String error = "HTTP message is not readable";
+		HttpStatus status = HttpStatus.BAD_REQUEST;
+		String message = "Request body is required but was not provided";
+		
+		if (!exception.getMessage().contains("Required request body is missing")) {
+			message = exception.getMessage();
+		}
+		
+		StandardError handledException = new StandardError(Instant.now(), status.value(), error, message, request.getRequestURI());		
 		return ResponseEntity.status(status).body(handledException);
 	}
 	

@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -105,6 +106,31 @@ public class UrlShortenerControllerTest {
 		.andExpect(result -> {
 			Exception exception = result.getResolvedException();
 			assertThat(exception).isInstanceOf(MethodArgumentNotValidException.class);
+		})
+		.andExpect(jsonPath("$.timestamp").exists())
+		.andExpect(jsonPath("$.status").value(EXPECTED_STATUS))
+		.andExpect(jsonPath("$.error").value(EXPECTED_ERROR))
+		.andExpect(jsonPath("$.message").value(EXPECTED_MESSAGE))
+		.andExpect(jsonPath("$.path").value(URI));
+		
+		verifyNoInteractions(service);
+	}
+	
+	@Test
+	@DisplayName("Deve retornar status 400 e lançar HttpMessageNotReadableException caso uma requisição sem corpo seja enviada")
+	void shouldReturn400AndThrowHttpMessageNotReadableException_whenRequestBodyIsMissing() throws Exception {
+		// ARRANGE
+		final String URI = "/shorten-url";
+		final Integer EXPECTED_STATUS = HttpStatus.BAD_REQUEST.value();
+		final String EXPECTED_ERROR = "HTTP message is not readable";
+		final String EXPECTED_MESSAGE = "Request body is required but was not provided";
+		
+		// ACT & ASSERT
+		mockMvc.perform(post(URI) // requisição POST sendo enviada sem body, deve lançar HttpMessageNotReadableException
+				.contentType(MediaType.APPLICATION_JSON))
+		.andExpect(result -> {
+			Exception exception = result.getResolvedException();
+			assertThat(exception).isInstanceOf(HttpMessageNotReadableException.class);
 		})
 		.andExpect(jsonPath("$.timestamp").exists())
 		.andExpect(jsonPath("$.status").value(EXPECTED_STATUS))
