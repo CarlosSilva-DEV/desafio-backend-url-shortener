@@ -2,6 +2,7 @@ package com.carlossilvadev.desafio_backend_url_shortener.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
@@ -66,5 +67,20 @@ public class UrlRepositoryTest {
 		
 		// ASSERT
 		assertFalse(result.isPresent());
+	}
+	
+	@Test
+	@DisplayName("Deve persistir corretamente todos os campos da entidade Url fornecida")
+	void shouldPersistAllFieldsOfGivenUrl() {
+		// ARRANGE
+		Url url = new Url("aBc123", "https://google.com");
+		
+		// ACT
+		Url savedUrl = repository.save(url);
+		
+		// ASSERT
+		assertNotNull(savedUrl);
+		assertEquals(url.getShortenedUrl(), savedUrl.getShortenedUrl());
+		assertEquals(url.getOriginalUrl(), savedUrl.getOriginalUrl());
 	}
 }
