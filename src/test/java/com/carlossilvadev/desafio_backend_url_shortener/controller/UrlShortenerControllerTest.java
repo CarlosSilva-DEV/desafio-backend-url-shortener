@@ -28,6 +28,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import com.carlossilvadev.desafio_backend_url_shortener.dto.UrlRequestDTO;
 import com.carlossilvadev.desafio_backend_url_shortener.dto.UrlResponseDTO;
+import com.carlossilvadev.desafio_backend_url_shortener.exceptions.UrlNotFoundException;
 import com.carlossilvadev.desafio_backend_url_shortener.service.UrlShortenerService;
 
 import tools.jackson.databind.ObjectMapper;
@@ -189,5 +190,31 @@ public class UrlShortenerControllerTest {
 				.andExpect(content().string(""));
 		
 		verify(service).findOriginalUrl(shortenedUrl);
+	}
+	
+	@Test
+	@DisplayName("Deve retornar status 404 e lançar UrlNotFoundException caso a URL original não seja encontrada")
+	void shouldReturn404AndThrowUrlNotFoundException_whenOriginalUrlIsNotFound() throws Exception {
+		// ARRANGE
+		String nonExistentUrl = "testUrl";
+		final Integer EXPECTED_STATUS = HttpStatus.NOT_FOUND.value();
+		final String EXPECTED_ERROR = "URL not found";
+		final String EXPECTED_MESSAGE = "A URL informada não existe: " + nonExistentUrl;
+		
+		when(service.findOriginalUrl(nonExistentUrl)).thenThrow(new UrlNotFoundException(EXPECTED_MESSAGE));
+		
+		// ACT & ASSERT
+		mockMvc.perform(get("/{request}", nonExistentUrl))
+				.andExpect(result -> {
+					Exception exception = result.getResolvedException();
+					assertThat(exception).isInstanceOf(UrlNotFoundException.class);
+				})
+				.andExpect(jsonPath("$.timestamp").exists())
+				.andExpect(jsonPath("$.status").value(EXPECTED_STATUS))
+				.andExpect(jsonPath("$.error").value(EXPECTED_ERROR))
+				.andExpect(jsonPath("$.message").value(EXPECTED_MESSAGE))
+				.andExpect(jsonPath("$.path").value("/" + nonExistentUrl));
+		
+		verify(service).findOriginalUrl(nonExistentUrl);
 	}
 }
