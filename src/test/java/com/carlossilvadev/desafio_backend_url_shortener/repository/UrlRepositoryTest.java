@@ -1,6 +1,7 @@
 package com.carlossilvadev.desafio_backend_url_shortener.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
@@ -52,5 +53,18 @@ public class UrlRepositoryTest {
 		assertTrue(result.isPresent());
 		assertEquals(url.getShortenedUrl(), result.get().getShortenedUrl());
 		assertEquals(url.getOriginalUrl(), result.get().getOriginalUrl());
+	}
+	
+	@Test
+	@DisplayName("Deve retornar Optional vazio quando a chave fornecida não retorna nenhuma entidade Url existente")
+	void shouldReturnEmpty_whenUrlDoesNotExistByGivenKey() {
+		// ARRANGE
+		Url nonExistentUrl = new Url("nonExistentUrl", "https://google.com");
+		
+		// ACT
+		Optional<Url> result = repository.findByShortenedUrl(nonExistentUrl.getShortenedUrl()); // sem repository.save, deve retornar Optional.empty
+		
+		// ASSERT
+		assertFalse(result.isPresent());
 	}
 }
