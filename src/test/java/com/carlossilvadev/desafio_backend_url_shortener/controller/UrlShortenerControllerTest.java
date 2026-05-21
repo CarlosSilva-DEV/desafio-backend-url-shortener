@@ -6,8 +6,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -15,6 +17,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -167,5 +170,24 @@ public class UrlShortenerControllerTest {
 		.andExpect(jsonPath("$.path").value(URI));
 		
 		verifyNoInteractions(service);
+	}
+	
+	// GET /{request}
+	@Test
+	@DisplayName("Deve retornar status 302 e redirecionar com sucesso caso a URL original esteja no header da resposta e o corpo da resposta seja vazio")
+	void shouldReturn302AndSuccessRedirect_whenOriginalUrlIsFound() throws Exception {
+		// ARRANGE
+		String shortenedUrl = "aBc123";
+		String originalUrl = "https://google.com";
+		
+		when(service.findOriginalUrl(shortenedUrl)).thenReturn(new UrlResponseDTO(originalUrl));
+		
+		// ACT & ASSERT
+		mockMvc.perform(get("/{request}", shortenedUrl))
+				.andExpect(status().isFound())
+				.andExpect(header().string(HttpHeaders.LOCATION, originalUrl))
+				.andExpect(content().string(""));
+		
+		verify(service).findOriginalUrl(shortenedUrl);
 	}
 }
