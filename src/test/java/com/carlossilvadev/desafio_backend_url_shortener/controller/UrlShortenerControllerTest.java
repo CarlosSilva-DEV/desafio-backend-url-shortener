@@ -1,6 +1,7 @@
 package com.carlossilvadev.desafio_backend_url_shortener.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -136,6 +137,33 @@ public class UrlShortenerControllerTest {
 		.andExpect(jsonPath("$.status").value(EXPECTED_STATUS))
 		.andExpect(jsonPath("$.error").value(EXPECTED_ERROR))
 		.andExpect(jsonPath("$.message").value(EXPECTED_MESSAGE))
+		.andExpect(jsonPath("$.path").value(URI));
+		
+		verifyNoInteractions(service);
+	}
+	
+	@Test
+	@DisplayName("Deve retornar status 400 e lançar HttpMessageNotReadableException caso uma requisição com JSON malformado seja enviada")
+	void shouldReturn400AndThrowHttpMessageNotReadableException_whenRequestBodyHasMalformedJSON() throws Exception {
+		// ARRANGE
+		String malformedJson = "{url: \"https://google.com\"}";
+		final String URI = "/shorten-url";
+		final Integer EXPECTED_STATUS = HttpStatus.BAD_REQUEST.value();
+		final String EXPECTED_ERROR = "HTTP message is not readable";
+		final String EXPECTED_MESSAGE = "JSON parse error";
+		
+		// ACT & ASSERT
+		mockMvc.perform(post(URI)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(malformedJson)) // requisição sendo enviada com JSON malformado, deve lançar HttpMessageNotReadableException
+		.andExpect(result -> {
+			Exception exception = result.getResolvedException();
+			assertThat(exception).isInstanceOf(HttpMessageNotReadableException.class);
+		})
+		.andExpect(jsonPath("$.timestamp").exists())
+		.andExpect(jsonPath("$.status").value(EXPECTED_STATUS))
+		.andExpect(jsonPath("$.error").value(EXPECTED_ERROR))
+		.andExpect(jsonPath("$.message").value(containsString(EXPECTED_MESSAGE)))
 		.andExpect(jsonPath("$.path").value(URI));
 		
 		verifyNoInteractions(service);
