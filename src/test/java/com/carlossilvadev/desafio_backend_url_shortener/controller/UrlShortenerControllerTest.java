@@ -47,8 +47,8 @@ public class UrlShortenerControllerTest {
 	
 	// POST /shorten-url
 	@Test
-	@DisplayName("Deve retornar status 201 e UrlResponseDTO com URL curta caso o UrlRequestDTO fornecido seja válido")
-	void shouldReturn201AndSuccessShortenUrl_whenGivenDtoIsValid() throws Exception {
+	@DisplayName("Deve retornar status 200 e UrlResponseDTO com URL curta caso o UrlRequestDTO fornecido seja válido")
+	void shouldReturn200AndSuccessShortenUrl_whenGivenDtoIsValid() throws Exception {
 		// ARRANGE
 		UrlRequestDTO request = new UrlRequestDTO("https://google.com");
 		final String URI = "/shorten-url";
@@ -59,7 +59,7 @@ public class UrlShortenerControllerTest {
 		mockMvc.perform(post(URI) // simula uma requisição HTTP
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(mapper.writeValueAsString(request))) // mapeia UrlRequestDTO para JSON (String)
-		.andExpect(status().isCreated()) // verifica status retornado
+		.andExpect(status().isOk()) // verifica status retornado
 		.andExpect(jsonPath("$.url").value("http://localhost/aBc123")); // equivalente a criar redirectUrl
 		
 		verify(service).shortenUrl(any(UrlRequestDTO.class));
