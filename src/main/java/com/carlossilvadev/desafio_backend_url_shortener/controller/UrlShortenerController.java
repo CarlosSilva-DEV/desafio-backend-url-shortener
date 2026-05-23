@@ -32,7 +32,7 @@ public class UrlShortenerController {
 		
 		var redirectUrl = servletRequest.getRequestURL().toString().replace("shorten-url", originalUrl); // constrói a URL com host e porta + URL curta no caminho URI
 		
-		return ResponseEntity.status(HttpStatus.CREATED).body(new UrlResponseDTO(redirectUrl));
+		return ResponseEntity.status(HttpStatus.OK).body(new UrlResponseDTO(redirectUrl));
 	}
 	
 	@GetMapping("/{request}")
