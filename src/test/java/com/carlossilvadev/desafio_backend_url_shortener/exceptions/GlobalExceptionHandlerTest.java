@@ -63,4 +63,36 @@ public class GlobalExceptionHandlerTest {
         assertThat(response.getBody().getMessage()).isEqualTo(EXPECTED_MESSAGE);
         assertThat(response.getBody().getPath()).isEqualTo(URI);
     } 
+
+    @Test
+    @DisplayName("Deve retornar status 404 e StandardError com mensagem de erro quando esiver tratando uma UrlNotFoundException")
+    void shouldReturn404AndStandardErrorWithDefaultMessage_whenHandligUrlNotFoundException() {
+        // ARRANGE
+
+        // essa exceção ocorre apenas no endpoint GET /{request}, desta forma, a URI abaixo deve ser usada no teste em detrimento do stub '/shorten-url' 
+        final String NON_EXISTENT_URL = "nonExistent";
+        final String EXPECTED_PATH = "/" + NON_EXISTENT_URL;
+        
+        // específico e utilizado apenas nesse teste para retornar a URI específica
+        HttpServletRequest getRequest = mock(HttpServletRequest.class);
+        when(getRequest.getRequestURI()).thenReturn(EXPECTED_PATH);
+
+        final String EXPECTED_MESSAGE = "A URL informada não existe: " + EXPECTED_PATH;
+        UrlNotFoundException exception = new UrlNotFoundException(EXPECTED_MESSAGE); // instanciando diretamente por ser uma exceção simples e personalizada
+
+        final Integer EXPECTED_STATUS = HttpStatus.NOT_FOUND.value();
+        final String EXPECTED_ERROR = "URL not found";
+
+        // ACT
+        ResponseEntity<StandardError> response = handler.handleUrlNotFound(exception, getRequest);
+        
+        // ASSERT
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND); 
+        assertThat(response.getBody()).isNotNull(); 
+        assertThat(response.getBody().getTimestamp()).isNotNull(); 
+        assertThat(response.getBody().getStatus()).isEqualTo(EXPECTED_STATUS);
+        assertThat(response.getBody().getError()).isEqualTo(EXPECTED_ERROR);
+        assertThat(response.getBody().getMessage()).isEqualTo(EXPECTED_MESSAGE);
+        assertThat(response.getBody().getPath()).isEqualTo(EXPECTED_PATH);
+    }
 }
