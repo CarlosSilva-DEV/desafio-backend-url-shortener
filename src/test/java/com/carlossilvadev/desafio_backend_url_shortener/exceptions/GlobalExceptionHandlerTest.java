@@ -145,4 +145,26 @@ public class GlobalExceptionHandlerTest {
         assertThat(response.getBody().getMessage()).isEqualTo(EXPECTED_MESSAGE);
         assertThat(response.getBody().getPath()).isEqualTo(URI);
     }
+
+    @Test
+    @DisplayName("Deve retornar status 500 e StandardError com mensagem genérica de erro interno quando estiver tratando exceções inesperadas")
+    void shouldReturn500AndStandardErrorWithInternalErrorMessage_whenHandlingUnexpectedExceptions() {
+        // ARRANGE
+        Exception exception = new RuntimeException("Generic error message");
+
+        final Integer EXPECTED_STATUS = HttpStatus.INTERNAL_SERVER_ERROR.value();
+        final String EXPECTED_ERROR = "Internal Server Error";
+        final String EXPECTED_MESSAGE = "Ocorreu um erro interno inesperado do servidor";
+
+        // ACT
+        ResponseEntity<StandardError> response = handler.handleUnexpectedExceptions(exception, request);
+        
+        // ASSERT
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR); 
+        assertThat(response.getBody()).isNotNull(); 
+        assertThat(response.getBody().getTimestamp()).isNotNull(); 
+        assertThat(response.getBody().getStatus()).isEqualTo(EXPECTED_STATUS);
+        assertThat(response.getBody().getError()).isEqualTo(EXPECTED_ERROR);
+        assertThat(response.getBody().getMessage()).isEqualTo(EXPECTED_MESSAGE);
+    }
 }
