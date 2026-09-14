@@ -3,7 +3,6 @@ package com.carlossilvadev.desafio_backend_url_shortener.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
@@ -26,7 +25,7 @@ import com.carlossilvadev.desafio_backend_url_shortener.dto.UrlResponseDTO;
 import com.carlossilvadev.desafio_backend_url_shortener.exceptions.UrlNotFoundException;
 import com.carlossilvadev.desafio_backend_url_shortener.model.Url;
 import com.carlossilvadev.desafio_backend_url_shortener.repository.UrlRepository;
-import com.carlossilvadev.desafio_backend_url_shortener.service.utils.ShortenerConstants;
+import com.carlossilvadev.desafio_backend_url_shortener.service.generator.UrlShortenerStrategy;
 
 @ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class) // habilita o Mockito sem subir contexto Spring
@@ -35,6 +34,9 @@ public class UrlShortenerServiceTest {
 	@Mock // cria uma implementação simulada, usada em dependências da classe testada
 	private UrlRepository repository;
 	
+    @Mock
+    private UrlShortenerStrategy shortener;
+
 	@InjectMocks // cria uma instancia real, usada na classe a ser testada
 	private UrlShortenerService service;
 	
@@ -43,14 +45,18 @@ public class UrlShortenerServiceTest {
 	void shouldSuccessShortenUrl_whenNoKeyConflictExists() {
 		// ARRANGE
 		String originalUrl = "https://google.com";
+        String shortenedUrl = "aBc123";
 		UrlRequestDTO request = new UrlRequestDTO(originalUrl);
 		
 		// type-checking
 		ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
 		ArgumentCaptor<Url> urlCaptor = ArgumentCaptor.forClass(Url.class);
 		
+        // simula a criação da chave
+        when(shortener.generateRandomKey()).thenReturn(shortenedUrl);
+
 		// simula que não haverá conflito de chaves
-		when(repository.findByShortenedUrl(anyString())).thenReturn(Optional.empty());
+		when(repository.findByShortenedUrl(shortenedUrl)).thenReturn(Optional.empty());
 		
 		// simula salvamento de entidade Url com retorno do objeto salvo
 		when(repository.save(any(Url.class))).thenAnswer(Invocation -> Invocation.getArgument(0));
@@ -61,19 +67,6 @@ public class UrlShortenerServiceTest {
 		// ASSERT
 		assertNotNull(response);
 		assertNotNull(response.url());
-		int length = response.url().length();
-		
-		// verifica tamanho da URL curta (entre 5-10 caracteres)
-		assertTrue(length >= ShortenerConstants.MIN_LENGTH && length <= ShortenerConstants.MAX_LENGTH,
-				"Comprimento esperado: entre %d e %d, mas foi: %d"
-					.formatted(ShortenerConstants.MIN_LENGTH, ShortenerConstants.MAX_LENGTH, length)
-		);
-		
-		// verifica se URL possui apenas caracteres alfanuméricos
-		assertTrue(
-				response.url().chars().allMatch(c -> ShortenerConstants.CHAR_POOL.indexOf(c) >= 0),
-				"A URL encurtada contém caracteres fora do CHAR_POOL"
-		);
 		
 		// verifica se o repository foi chamado corretamente
 		verify(repository).findByShortenedUrl(keyCaptor.capture());
@@ -92,13 +85,18 @@ public class UrlShortenerServiceTest {
 	void shouldRetryShortenUrl_whenKeyAlreadyExists() {
 		// ARRANGE
 		UrlRequestDTO request = new UrlRequestDTO("https://google.com.br");
-		Url conflictingUrl = new Url("randomUrl", "https://youtube.com");
+        String conflictingKey = "randomUrl";
+        String nonConflictingKey = "noConflict";
+		Url conflictingUrl = new Url(conflictingKey, "https://youtube.com");
 		
+        // simula a chamada do método que gera a chave aleatória para ser inclusa na URL
+        when(shortener.generateRandomKey())
+            .thenReturn(conflictingKey)
+            .thenReturn(nonConflictingKey);
+
 		// simula que haverá conflito de chaves 1 vez, então shortenUrl() tentará gerar nova chave e resultará sucesso
-		when(repository.findByShortenedUrl(anyString()))
-				.thenReturn(Optional.of(conflictingUrl))
-				.thenReturn(Optional.empty());
-		
+		when(repository.findByShortenedUrl(conflictingKey)).thenReturn(Optional.of(conflictingUrl));
+		when(repository.findByShortenedUrl(nonConflictingKey)).thenReturn(Optional.empty());
 		when(repository.save(any(Url.class))).thenAnswer(Invocation -> Invocation.getArgument(0));
 		
 		// ACT
@@ -107,8 +105,10 @@ public class UrlShortenerServiceTest {
 		// ASSERT
 		assertNotNull(response);
 		assertNotNull(response.url());
+        assertEquals(nonConflictingKey, response.url());
 		
 		// verifica número de chamadas (1 conflito + 1 sucesso)
+        verify(shortener, times(2)).generateRandomKey();
 		verify(repository, times(2)).findByShortenedUrl(anyString());
 		verify(repository).save(any(Url.class));
 	}
