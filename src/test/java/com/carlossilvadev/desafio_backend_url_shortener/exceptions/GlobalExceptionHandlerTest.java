@@ -11,6 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -94,5 +95,29 @@ public class GlobalExceptionHandlerTest {
         assertThat(response.getBody().getError()).isEqualTo(EXPECTED_ERROR);
         assertThat(response.getBody().getMessage()).isEqualTo(EXPECTED_MESSAGE);
         assertThat(response.getBody().getPath()).isEqualTo(EXPECTED_PATH);
+    }
+
+    @Test
+    @DisplayName("Deve retornar status 400 e StandardError com mensagem de corpo ausente quando estiver tratando uma HttpMessageNotReadableException causada pela ausência de corpo da requisição")
+    void shouldReturn400AndStandardErrorWithMissingBodyMessage_whenHttpMessageNotReadableExceptionIndicatesMissingBody() {
+        // ARRANGE
+        HttpMessageNotReadableException exception = mock(HttpMessageNotReadableException.class);
+        when(exception.getMessage()).thenReturn("Required request body is missing: [placeholder message]");
+
+        final Integer EXPECTED_STATUS = HttpStatus.BAD_REQUEST.value();
+        final String EXPECTED_ERROR = "HTTP message is not readable";
+        final String EXPECTED_MESSAGE = "Request body is required but was not provided";
+
+        // ACT
+        ResponseEntity<StandardError> response = handler.handleHttpMessageNotReadable(exception, request);
+
+        // ASSERT
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST); 
+        assertThat(response.getBody()).isNotNull(); 
+        assertThat(response.getBody().getTimestamp()).isNotNull(); 
+        assertThat(response.getBody().getStatus()).isEqualTo(EXPECTED_STATUS);
+        assertThat(response.getBody().getError()).isEqualTo(EXPECTED_ERROR);
+        assertThat(response.getBody().getMessage()).isEqualTo(EXPECTED_MESSAGE);
+        assertThat(response.getBody().getPath()).isEqualTo(URI);
     }
 }
