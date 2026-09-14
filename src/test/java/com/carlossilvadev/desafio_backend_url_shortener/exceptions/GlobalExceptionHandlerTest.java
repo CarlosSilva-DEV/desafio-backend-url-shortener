@@ -120,4 +120,29 @@ public class GlobalExceptionHandlerTest {
         assertThat(response.getBody().getMessage()).isEqualTo(EXPECTED_MESSAGE);
         assertThat(response.getBody().getPath()).isEqualTo(URI);
     }
+
+    @Test
+    @DisplayName("Deve retornar status 400 e StandardError com mensagem de 'JSON parse error' quando estiver tratando uma HttpMessageNotReadableException causada por um JSON malformado")
+    void shouldReturn400AndStandardErrorWithJsonParseErrorMessage_whenHandlingHttpMessageNotReadableExceptionCausedByMalformedJson() {
+        // ARRANGE
+        final Integer EXPECTED_STATUS = HttpStatus.BAD_REQUEST.value();
+        final String EXPECTED_ERROR = "HTTP message is not readable";
+        final String EXPECTED_MESSAGE = "JSON parse error: [placeholder message]";
+
+
+        HttpMessageNotReadableException exception = mock(HttpMessageNotReadableException.class);
+        when(exception.getMessage()).thenReturn(EXPECTED_MESSAGE);
+
+        // ACT
+        ResponseEntity<StandardError> response = handler.handleHttpMessageNotReadable(exception, request);
+
+        // ASSERT
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST); 
+        assertThat(response.getBody()).isNotNull(); 
+        assertThat(response.getBody().getTimestamp()).isNotNull(); 
+        assertThat(response.getBody().getStatus()).isEqualTo(EXPECTED_STATUS);
+        assertThat(response.getBody().getError()).isEqualTo(EXPECTED_ERROR);
+        assertThat(response.getBody().getMessage()).isEqualTo(EXPECTED_MESSAGE);
+        assertThat(response.getBody().getPath()).isEqualTo(URI);
+    }
 }
