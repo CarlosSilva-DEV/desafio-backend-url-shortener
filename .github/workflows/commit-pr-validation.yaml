@@ -26,7 +26,7 @@ jobs:
           fetch-depth: 0
 
       - name: Validate commit messages
-        uses: gsactions/commit-message-checker@v2
+        uses: ddev/commit-message-checker@a60e39fb2c660449385cef364d86472e7edba471
         with:
           pattern: '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(\([^)]+\))?: .+'
           error: 'Invalid format! Must be: type(scope): message OR type: message. Allowed types: feat, fix, docs, style, refactor, perf, test, build, ci, chore.'
@@ -36,7 +36,7 @@ jobs:
 
       - name: Validate Pull Request Description
         if: github.event_name == 'pull_request'
-        uses: gsactions/commit-message-checker@v2
+        uses: ddev/commit-message-checker@a60e39fb2c660449385cef364d86472e7edba471
         with:
           pattern: '^([Cc]loses|[Rr]esolves|[Ff]ixes):?\s+#\d+'
           error: 'Your Pull Request description must contain a line linking to an issue. Example: "Fixes: #45"'
