@@ -1,0 +1,43 @@
+name: "Commit Message & PR validation"
+
+on:
+  push:
+    branches:
+      - main
+      - '**/**'
+  pull_request:
+    types: 
+      - opened
+      - synchronize
+      - reopened
+    
+concurrency:
+ group: ${{ github.workflow }}-${{ github.ref }}
+ cancel-in-progress: true
+
+jobs:
+  check-commit-message:
+    name: Core validations 
+    runs-on: ubuntu-latest
+    steps:
+      - name: Codebase checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Validate commit messages
+        uses: gsactions/commit-message-checker@v2
+        with:
+          pattern: '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(\([^)]+\))?: .+'
+          error: 'Invalid format! Must be: type(scope): message OR type: message. Allowed types: feat, fix, docs, style, refactor, perf, test, build, ci, chore.'
+          excludeDescription: 'true'
+          checkAllCommitMessages: 'true'
+          accessToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validate Pull Request Description
+        if: github.event_name == 'pull_request'
+        uses: gsactions/commit-message-checker@v2
+        with:
+          pattern: '^([Cc]loses|[Rr]esolves|[Ff]ixes):?\s+#\d+'
+          error: 'Your Pull Request description must contain a line linking to an issue. Example: "Fixes: #45"'
+          excludeTitle: 'true'
