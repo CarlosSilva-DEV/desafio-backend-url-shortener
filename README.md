@@ -16,19 +16,7 @@
 <br>
 
 <div align="center">
-  <img src=https://img.shields.io/badge/java-%23ED8B00.svg?style=for-the-badge&logo=openjdk&logoColor=white>
-  <img src=https://img.shields.io/badge/spring-%236DB33F.svg?style=for-the-badge&logo=spring&logoColor=white>
-  <img src=https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white>
-  <img src=https://img.shields.io/badge/apache%20maven-C71A36.svg?style=for-the-badge&logo=apachemaven&logoColor=white>
-  <img src=https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white>
-  <img src=https://img.shields.io/badge/postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white>
-  <br>
-  <img src=https://img.shields.io/badge/swagger-limegreen?style=for-the-badge&logo=swagger&logoColor=white>
-  <img src=https://img.shields.io/badge/junit6-%23dc524a?style=for-the-badge&logo=junit5&logoColor=white>
-  <img src=https://custom-icon-badges.demolab.com/badge/mockito-white.svg?style=for-the-badge&logo=mockito>
-  <img src=https://custom-icon-badges.demolab.com/badge/assertj-grey.svg?style=for-the-badge&logo=assertj>
-  <img src=https://custom-icon-badges.demolab.com/badge/testcontainers-%230c93a9.svg?style=for-the-badge&logo=testcontainers&logoColor=white>
-  <img src=https://custom-icon-badges.demolab.com/badge/spring%20tools%20suite-darkgreen.svg?style=for-the-badge&logo=spring-tools-suite&logoColor=white>
+    <img src=https://skills.syvixor.com/api/icons?i=java,spring,redis,maven,docker,postman,swagger,junit5,testcontainers,githubactions,sonarqube&radius=50>
 </div>
 
 <br>
@@ -56,6 +44,8 @@ Esse projeto foi desenvolvido para resolver o [desafio proposto pela comunidade 
 - **Mockito** (Criação de bean mocks para dependências em testes unitários).
 - **AssertJ** (Validações de resultados em testes unitários).
 - **Testcontainers** (Containers temporários para testes de integração entre Repositories e Redis).
+- **GitHub Actions** (Pipeline de Continuous Integration/CI).
+- **SonarQube** (Análise estática de código, métricas de qualidade e cobertura de testes).
 
 <br>
 
@@ -70,6 +60,8 @@ Esse projeto foi desenvolvido para resolver o [desafio proposto pela comunidade 
 - Automatização de **testes unitários** automatizados.
 - **Testes de integração** com containers temporários.
 - **Data Transfer Objects** (DTO) com **Records**.
+- **Continuous Integration (CI)** com **GitHub Actions**.
+- **Análise estática**, **code coverage** e **Continuous Code Quality** com **SonarQube**. 
 
 <br>
 
